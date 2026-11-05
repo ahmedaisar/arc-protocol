@@ -1,41 +1,12 @@
-# Global Agent Rules & Skill Selection
+# ARC Protocol 3.0 — Global Agent Rules
 
-As the Main Agent (Cortex), you are responsible for selecting the right specialized skills for each task to avoid "Context Explosion".
-
-## 🛠️ Skill Discovery Process
-
-Before starting any task, check the `.agent/skills/` directory:
-1. List all available skill directories.
-2. If a task involves a specific domain (e.g., Security, Performance, UI), read the `SKILL.md` in that directory.
-3. Follow the instructions in the `SKILL.md` strictly as a **Specialized Subagent**.
-
-## 🧠 Selection Logic
-
-| **Research & Planning** | `researcher` | For any project planning, docs, or status updates. |
-| **Coding & Perf** | `coder` | When writing features, fixing bugs, or optimizing code. |
-| **Security & Review** | `auditor` | Before committing any code involving auth, secrets, or network. |
-
-## 🛰️ Non-Blocking Orchestration Protocol
-
-To maintain peak efficiency, the Orchestrator (Cortex) MUST follow these parallel work rules:
-
-1. **Supervisor-Worker Separation**: Once a subagent is spawned via `arc_spawn_agent`, you **must not wait** for it to finish before addressing other tasks. Proactively propose parallel work to the user.
-2. **Heartbeat Monitoring**: Use the Dashboard and `arc_status` to monitor workers in the background. Avoid making subagent output a synchronous blocker.
-3. **The 50/50 Balance**: Orchestrator handles 50% complex logic/integration; Subagents handle 50% tactical/boilerplate/research.
-
-## 🚥 Interaction Rules
-
-1. **Dashboard First (Mandatory)**: Before starting any major thinking block or tool execution, update the dashboard using `.agent/dashboard/update.py`.
-   - **Main Agent Reporting**: Use `main_status` (e.g., "THINKING", "ACTING") and `main_action` (e.g., "Designing API...", "Executing Tests...").
-   - **Subagent Delegation**: Define which subagent is being invoked (Architect/Executor/Reviewer).
-
-2. **Skill Loading (Strategic)**: 
-   - Check `.agent/skills/` for relevant skills before starting a phase or a complex task.
-   - If a skill is relevant (e.g., `performance` for UI work), read its `SKILL.md`.
-   - Mention: "Assuming [Skill Name] Subagent role."
-
-3. **Context Maintenance**:
-   - Every workflow command MUST start by reading the relevant `.arc/*.md` files listed in its "Pre-Check" section.
-   - Never assume project context; always verify from the files.
-
-4. **Don't Overload**: Do not load more than 2 skills at once to avoid context explosion.
+1. Discover Skills in `.agents/skills/` and load only those relevant to the current task.
+2. Read the appropriate `.arc/` context before planning or editing. Do not invent missing project facts.
+3. Read `.arc/CONTRACTS.md` before changing public interfaces or shared data models.
+4. For substantial work, use `arc-discuss` and `arc-plan`; wait for approval before execution.
+5. Execute atomic tasks in dependency order and update `.arc/STATE.md` at meaningful milestones.
+6. Use host-native subagents only when available. Delegation is optional; sequential execution is the fallback.
+7. The main agent owns integration and final verification. Inspect every delegated result.
+8. Run relevant tests and report exact commands and outcomes. Never claim an unrun check passed.
+9. Preserve user changes; ask before destructive operations or broad scope changes.
+10. MCP and the dashboard are optional helpers, not protocol requirements.

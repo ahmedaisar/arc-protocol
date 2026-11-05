@@ -1,106 +1,44 @@
-# 🔌 Integrations Guide
+# ARC Protocol 3.0 Integrations
 
-ARC is built on the **Model Context Protocol (MCP)**, which means it works with any modern AI editor. Here is how to connect it to your favorite tools.
+ARC Skills are the primary integration surface. MCP is optional and provides deterministic tools only; it does not launch AI agents.
 
----
+## Skills discovery
 
-## 1. Antigravity AI (Native)
+The canonical Skills directory is:
 
-Antigravity has first-class support for ARC.
+```text
+.agents/skills/<skill-name>/SKILL.md
+```
 
-**Setup:**
-1.  Open **Settings > MCP Servers**.
-2.  Click **Add Server**.
-3.  **Name:** `arc-bridge`
-4.  **Command:** `python3` (or your venv path)
-5.  **Args:** `/ABSOLUTE/PATH/TO/.agent/mcp/arc_mcp_server.py`
+Each Skill uses YAML frontmatter with a `name` and `description`. Configure your AI coding host to discover this directory using the host's documented Skills mechanism.
 
-**Usage:**
-Just type `/arc-new` in the main chat.
+Some tools automatically discover repository Skills; others use a client-specific path or setting. When a host requires a different directory, create a symlink or copy from `.agents/skills/`. Avoid editing duplicate copies independently.
 
----
+Useful workflow Skills: `arc-new`, `arc-map`, `arc-discuss`, `arc-plan`, `arc-execute`, `arc-verify`, `arc-status`, `arc-resume`, and `arc-quick`.
 
-## 2. Claude Desktop (Official)
+## Optional MCP bridge
 
-Claude Desktop allows you to run ARC locally while talking to Claude 3.5 Sonnet.
+Use MCP only when your host benefits from structured tools for local file operations, shell execution, or dashboard updates.
 
-**Setup:**
-1.  Open your config file:
-    *   **Mac:** `~/Library/Application Support/Claude/claude_desktop_config.json`
-    *   **Windows:** `%APPDATA%\Claude\claude_desktop_config.json`
-2.  Add this entry:
+Example stdio configuration (replace the absolute path):
 
 ```json
 {
   "mcpServers": {
-    "arc-bridge": {
+    "arc-tools": {
       "command": "python3",
-      "args": ["/ABSOLUTE/PATH/TO/.agent/mcp/arc_mcp_server.py"]
+      "args": ["/absolute/path/to/arc-protocol/.agent/mcp/arc_mcp_server.py"]
     }
   }
 }
 ```
 
-**Usage:**
-Claude will now see the `arc_spawn_agent` tool. You can say:
-> "Initialize a new ARC project."
-> "Run the researcher agent on this task."
+The bridge exposes deterministic utilities. It does not include `arc_spawn_agent` or model selection. Follow your host's documentation for the MCP configuration location and permission model.
 
----
+## Dashboard
 
-## 3. VS Code (via Roo Code / Cline)
+Run `./dash` (Windows: `dash.bat`) in a separate terminal. The dashboard is optional and does not control the AI host.
 
-VS Code doesn't support MCP natively yet, but the **Roo Code** (formerly Cline) extension does.
+## Provider independence
 
-**Setup:**
-1.  Install **Roo Code** from the Marketplace.
-2.  Open Roo settings -> **MCP Servers**.
-3.  Add a new server:
-    *   **Name:** `arc`
-    *   **Type:** `stdio`
-    *   **Command:** `python3 /ABSOLUTE/PATH/TO/.agent/mcp/arc_mcp_server.py`
-
-**Usage:**
-In the Roo sidebar, ask it to "Plan a new phase using ARC." It will utilize the ARC tools to create the `.arc/` structure.
-
----
-
-## 4. OpenCode / Windsurf
-
-Most forks of VS Code with AI follow the same MCP pattern.
-
-**Setup:**
-Look for `mcp_config.json` or "MCP Server Settings" in the command palette.
-Use the same stdio configuration as Claude Desktop.
-
----
-
-## 5. GitHub Copilot
-
-Copilot does not natively support MCP tools yet. To use ARC effectively:
-
-**Setup:**
-1.  Create a file at `.github/copilot-instructions.md`.
-2.  Add this rule:
-    > "You are an ARC-compliant Orchestrator. Always refer to `.arc/CONTRACTS.md` before suggesting code. Follow the workflows in `.agent/workflows/`."
-
-**Usage:**
-Since Copilot cannot "click" the tools:
-1.  Ask Copilot to **Plan** the work (`/arc-plan`).
-2.  Spawn agents manually in the terminal:
-    ```bash
-    # Manually spawn a subagent
-    python3 .agent/workers/background_agent.py "Research-1" "Find the docs for X"
-    ```
-3.  Watch the dashboard.
-
----
-
-## 🔒 Authentication Note for All Integrations
-
-ARC uses the **Gemini CLI** for its background workers.
-regardless of which editor you use, you must have run:
-```bash
-gemini login
-```
-in your terminal *before* interacting with the agents.
+ARC does not require Gemini, OpenAI, Anthropic, an API key, Node.js, or any model CLI. The host agent uses its own configured runtime and permissions.

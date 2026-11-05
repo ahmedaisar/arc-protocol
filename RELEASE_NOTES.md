@@ -1,27 +1,18 @@
-# v2.1 Release Notes: The "No Slop" Update
+# ARC Protocol v3.0.0 — Skills-First Release
 
-We listened to the feedback. ARC v2.0 was too "Vibe Coded." v2.1 is engineered.
+ARC v3 separates its engineering protocol from the AI runtime.
 
-## 🔥 Top Critical Fixes
+## Highlights
 
-*   **Fixed "Works on My Machine":**
-    *   Removed all hardcoded `/home/user/` paths.
-    *   `./dash` is now a portable relative launcher.
-    *   MCP Bridge now auto-detects the correct `python3` executable.
-*   **Documentation Overhaul:**
-    *   Deleted 100% of the "AI Sales Speak" (No more "Singularity", "Testament", "Delve").
-    *   Renamed "Alpha/Beta/Gamma" agents to standard **Researcher / Coder / Auditor**.
-    *   Added a concrete **"To-Do App" Tutorial** in the README.
-*   **Architecture Transparency:**
-    *   New `HOW_IT_WORKS.md` explains the "Fresh Process" architecture used to solve Context Rot.
-    *   Admitted the ~20% hallucination rate in "Operational Realities".
+- Introduces a canonical Agent Skills catalog under `.agents/skills/`.
+- Converts core workflows and specialist roles into portable Skills.
+- Removes Gemini CLI authentication, model selection, and Google generative AI dependency from setup.
+- Removes AI-worker spawning from the MCP bridge.
+- Keeps MCP as an optional deterministic-tools integration.
+- Preserves project context, planning templates, Python utilities, and the dashboard.
+- Supports native host-agent delegation when available and sequential fallback otherwise.
+- Adds a Skill catalog validator and unit tests.
 
-## 🛠️ Integration Support
-*   Added comprehensive guides for **Antigravity**, **Claude Desktop**, **VS Code (Roo)**, and **Copilot**.
+## Migration
 
-## 🚀 Getting Started
-1.  `python3 setup_arc.py`
-2.  `./dash`
-3.  Connect your IDE.
-
-*Thank you to the Reddit community for the brutal honesty. We needed it.*
+See [docs/MIGRATION_V3.md](docs/MIGRATION_V3.md). Existing `.arc/` state and legacy workflow paths are retained.

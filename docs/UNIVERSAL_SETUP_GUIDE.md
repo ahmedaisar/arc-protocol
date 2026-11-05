@@ -1,70 +1,42 @@
-# Universal Setup Guide
+# ARC Protocol 3.0 Setup Guide
 
-This guide covers getting ARC running on Linux, macOS, or Windows (WSL2).
+Supports Linux, macOS, and Windows (including WSL).
 
-## Prerequisites
-*   **Python:** Version 3.10+ (The Logic Engine).
-*   **Node.js:** Version 18+ (Required for the Gemini Auth Bridge).
-*   **A Google Account:** For secure, free authentication.
+## Requirements
 
----
+- Python 3.10 or newer.
+- An AI coding host that supports Agent Skills or can read Markdown instructions.
 
-## 1. Install the Core Tools
+ARC core does not require Node.js, Gemini CLI, Google authentication, model API keys, or a provider SDK.
 
-Run the checking script included in the repo. It creates a virtual environment (`venv`) so we don't mess up your system python.
+## Install
+
+From the repository root:
 
 ```bash
 python3 setup_arc.py
 ```
 
-## 2. Authenticate with Google
+The setup script creates a Python virtual environment, installs local utility dependencies, scaffolds missing ARC runtime directories, and creates the dashboard launcher. Existing project context is preserved.
 
-ARC delegates actual intelligence to Gemini. We use their official CLI to keep things secure.
+## Connect your AI host
 
-```bash
-# Install the CLI tool
-npm install -g @google/generative-ai
+Configure the host to discover Skills from `.agents/skills/`. If it expects a different path, use its documented Skills directory and link or copy the canonical Skills there.
 
-# Log in (This will open a browser window)
-gemini login
-```
+Start with:
 
-Once you see "Authentication successful" in the browser, you are done.
+- `arc-new` for a new project.
+- `arc-map` for an existing codebase.
+- `arc-resume` for a project with existing ARC state.
 
-## 3. Connect Your Editor (MCP)
-
-To let your AI editor (Cursor/Windsurf/Claude) control the agents, you need to tell it where our server lives.
-
-> **What is MCP?**
-> The **Model Context Protocol** is a standard that allows AI tools to talk to local files and scripts safely. It's the "USB cable" connecting your fancy AI editor to your actual hard drive.
-
-1.  Open your IDE's **MCP Settings** (usually in a config JSON file).
-2.  Add the `arc-bridge` server using the **absolute path** to the repo.
-
-**Config Example:**
-```json
-{
-  "mcpServers": {
-    "arc-bridge": {
-      "command": "python3", 
-      "args": ["/ABSOLUTE/PATH/TO/arc-protocol/.agent/mcp/arc_mcp_server.py"]
-    }
-  }
-}
-```
-*(Replace `/ABSOLUTE/PATH/TO/...` with the real path. You can find it by typing `pwd` in your terminal).*
-
-## 4. Launch the Dashboard
-
-Open a **NEW, SEPARATE terminal window**. Keep your previous one for general commands, but dedicate this new one solely to the dashboard. This is your "Mission Control" screen.
-Navigate to the project folder and run:
+## Optional dashboard
 
 ```bash
 ./dash
 ```
 
-You should see this:
+On Windows, run `dash.bat`.
 
-![ARC Dashboard](../assets/Dashboard.png)
+## Optional MCP tools
 
-You are now ready to start using ARC.
+See [Integrations](INTEGRATIONS.md). MCP is not needed to load Skills or use the protocol.

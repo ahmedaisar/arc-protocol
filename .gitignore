@@ -1,13 +1,10 @@
-# ARC Protocol
-# ------------------------------
-
-# 1. Runtime State (Do not commit)
+# ARC runtime state
 .arc/state/
 .arc/arc_workflow_state.json
 .arc/archive/subagent_logs/
 .arc/archive/*.md
 
-# 2. Python Environment
+# Python
 venv/
 __pycache__/
 *.py[cod]
@@ -18,16 +15,16 @@ __pycache__/
 dist/
 build/
 
-# 3. Secrets
+# Secrets
 .env
 .env.local
 
-# 4. Node.js
+# Node (only for projects that use Node; not an ARC prerequisite)
 node_modules/
 npm-debug.log*
 yarn-debug.log*
 
-# 5. OS & IDE
+# OS and IDE
 .DS_Store
 Thumbs.db
 .vscode/

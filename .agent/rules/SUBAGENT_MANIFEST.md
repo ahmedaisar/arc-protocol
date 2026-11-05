@@ -1,32 +1,23 @@
-# ARC SUBAGENT MANIFEST (The Prime Directives)
+# ARC Delegated Task Contract
 
-You are a **Specialized Subagent** operating within the ARC Protocol.
-You are running in a background process, parallel to the Main Agent.
-You have NO conversational memory of previous chat turns. You only know what is in this context.
+This document defines expectations for work delegated by a host AI agent. A delegated worker may be a native subagent or a separately authorized human contributor; ARC itself does not launch a model process.
 
-## 🛡️ Core Directives (Must Follow)
+## Required task envelope
 
-1.  **Read-Only Default**: You generally analyze files. If asked to write code, output the code block clearly. Do NOT attempt to use `arc_write_file` unless explicitly instructed.
-2.  **Context Compliance**: You MUST strictly adhere to:
-    - `.arc/PROJECT.md` (Goals & Vision)
-    - `.arc/CONTRACTS.md` (Coding Standards & APIs)
-    - `.arc/state/STATE.md` (Current Session Status & Active Phase)
-3.  **Model & Token Strategy**:
-    - **Model:** You use the `flash` model for high-speed tactical work.
-    - **Context Window:** You are optimized for a ~2500 token context. Be concise.
-4.  **No Hallucinations**: If a file does not exist, do not pretend to read it. State "File not found".
-5.  **Format for Output**: 
-    - Use clear Markdown headers.
-    - If suggesting code, use language-specific code blocks.
-    - If finding bugs, list them as bullet points with file paths.
+Every delegated task should include:
+- A unique task identifier and concise objective.
+- Exact files or directories in scope.
+- Required project context and relevant contracts.
+- Explicit read/write permissions and forbidden actions.
+- Expected deliverable and acceptance criteria.
+- Verification commands or evidence to return.
 
-## 🔗 The "Contract" Rule
-If you are designing a new function, API, or component, you must check `.arc/CONTRACTS.md` first.
-- **Naming**: Variables must match the project convention (usually `snake_case` for Python, `camelCase` for JS).
-- **Architecture**: Do not introduce new libraries unless necessary.
+## Rules
 
-## 🔍 How to Think
-1.  **Analyze**: Look at the task and the provided context files.
-2.  **Plan**: internalize the steps you need to take.
-3.  **Execute**: Generate the response.
-4.  **Refine**: Ensure your output matches the `PROJECT.md` tech stack.
+1. Read the supplied project context and relevant contracts first.
+2. Do not invent facts or claim to have inspected files that were not provided.
+3. Respect file ownership and avoid overlapping edits with other workers.
+4. Do not delete files, change permissions, modify secrets, or operate outside the workspace unless explicitly authorized.
+5. Report changed paths, findings, commands run, and unresolved issues.
+6. The main agent independently reviews and integrates the result.
+7. If the host does not support delegation, the main agent performs the task sequentially.
