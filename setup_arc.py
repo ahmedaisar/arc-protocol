@@ -1,149 +1,112 @@
 #!/usr/bin/env python3
-import os
-import sys
-import subprocess
+"""Install ARC Protocol's local tools without configuring an AI provider."""
+
+from __future__ import annotations
+
 import json
-import time
+import os
+import subprocess
+import sys
+from pathlib import Path
 
-def print_banner():
+ROOT = Path(__file__).resolve().parent
+
+
+def print_banner() -> None:
     print("""
-    \033[1;96m   █████╗ ██████╗  ██████╗ 
-      ██╔══██╗██╔══██╗██╔════╝ 
-      ███████║██████╔╝██║      
-      ██╔══██║██╔══██╗██║      
-      ██║  ██║██║  ██║╚██████╗ 
-      ╚═╝  ╚═╝╚═╝  ╚═╝ ╚═════╝ \033[0m
-                                                                        
-                         \033[1;97mARC SETUP WIZARD v2.1\033[0m
-    """)
+    █████╗ ██████╗  ██████╗
+   ██╔══██╗██╔══██╗██╔════╝
+   ███████║██████╔╝██║
+   ██╔══██║██╔══██╗██║
+   ██║  ██║██║  ██║╚██████╗
+   ╚═╝  ╚═╝╚═╝  ╚═╝ ╚═════╝
+   ARC PROTOCOL v3.0 — SKILLS FIRST
+   ANALYZE. RUN. CONFIRM.
+""")
 
-def check_dependencies():
-    deps = {
-        "python3": "python3 --version",
-        "node": "node --version",
-        "npm": "npm --version",
-        "gemini": "gemini --version"
-    }
-    
-    missing = []
-    print("\033[94m[*] Checking System Dependencies...\033[0m")
-    for name, cmd in deps.items():
-        try:
-            # Security fix: Avoid shell=True
-            subprocess.check_output(cmd.split(), stderr=subprocess.STDOUT)
-            print(f"  \033[92m[✓]\033[0m {name} detected.")
-        except:
-            missing.append(name)
-            print(f"  \033[91m[✗]\033[0m {name} NOT detected.")
-            
-    if "gemini" in missing:
-        if "npm" in missing:
-            print("\033[91m[!] Node.js and npm are required to run the Gemini CLI.\033[0m")
-            print("    1. Install Node.js v18+ from https://nodejs.org/")
-            print("    2. Run 'npm install -g @google/generative-ai'")
-        else:
-            print("\033[93m[!] Gemini CLI missing. Attempting auto-install...\033[0m")
-            try:
-                # Security fix: Avoid shell=True
-                subprocess.run(["npm", "install", "-g", "@google/generative-ai"], check=True)
-                missing.remove("gemini")
-            except:
-                print("\033[91m[ERROR] Failed to install Gemini CLI. Please run 'npm install -g @google/generative-ai' manually.\033[0m")
 
-    return len(missing) == 0
+def setup_environment() -> Path:
+    venv = ROOT / "venv"
+    if not venv.exists():
+        subprocess.run([sys.executable, "-m", "venv", str(venv)], check=True)
+    python = venv / ("Scripts/python.exe" if os.name == "nt" else "bin/python")
+    pip = venv / ("Scripts/pip.exe" if os.name == "nt" else "bin/pip")
+    requirements = ROOT / "requirements.txt"
+    if requirements.exists():
+        subprocess.run([str(pip), "install", "-r", str(requirements)], check=True)
+    return python
 
-def check_auth():
-    print("\033[94m[*] Checking Gemini Authentication...\033[0m")
-    # This is a heuristic check; usually gemini --version works if installed, 
-    # but we want to know if 'gemini login' was run.
-    # We can try to list models as a test.
-    try:
-        # If this fails, the user likely isn't logged in.
-    try:
-        # If this fails, the user likely isn't logged in.
-        # Security fix: Avoid shell=True
-        subprocess.check_output(["gemini", "models"], stderr=subprocess.STDOUT)
-        print("  \033[92m[✓]\033[0m Gemini authenticated.")
-        return True
-    except:
-        print("  \033[91m[✗]\033[0m Gemini NOT authenticated.")
-        return False
 
-def setup_environment():
-    print("\033[94m[*] Setting up Virtual Environment...\033[0m")
-    if not os.path.exists("venv"):
-        subprocess.run([sys.executable, "-m", "venv", "venv"], check=True)
-    
-    pip_path = os.path.join("venv", "bin", "pip") if os.name != "nt" else os.path.join("venv", "Scripts", "pip")
-    print("\033[94m[*] Installing Python Requirements...\033[0m")
-    subprocess.run([pip_path, "install", "rich", "textual", "pydantic", "filelock"], check=True)
+def scaffold_arc() -> None:
+    for directory in (
+        ".arc/archive",
+        ".arc/planning",
+        ".arc/state",
+        ".agents/skills",
+        ".agent/tools",
+    ):
+        (ROOT / directory).mkdir(parents=True, exist_ok=True)
 
-def scaffold_arc():
-    print("\033[94m[*] Scaffolding .arc/ directory...\033[0m")
-    dirs = [".arc/archive", ".arc/planning", ".agent/skills", ".agent/tools"]
-    for d in dirs:
-        os.makedirs(d, exist_ok=True)
-        print(f"  \033[92m[+]\033[0m Created {d}")
+    state_file = ROOT / ".arc/arc_workflow_state.json"
+    if not state_file.exists():
+        state_file.write_text(
+            json.dumps(
+                {
+                    "project": "New ARC Project",
+                    "phase": "Initialize",
+                    "agents": {},
+                    "logs": [],
+                    "metrics": {"tasks_total": 0, "tasks_completed": 0},
+                },
+                indent=2,
+            )
+            + "\n",
+            encoding="utf-8",
+        )
 
-    # Create dummy workflow state if it doesn't exist
-    state_file = ".arc/arc_workflow_state.json"
-    if not os.path.exists(state_file):
-        with open(state_file, "w") as f:
-            json.dump({
-                "project": "New ARC Project",
-                "phase": "Initialize",
-                "agents": {},
-                "logs": [],
-                "metrics": {"tasks_total": 0, "tasks_completed": 0}
-            }, f, indent=2)
 
-def main():
-    print_banner()
-    
-    if not check_dependencies():
-        print("\033[91m[FAIL] Required dependencies missing. Setup aborted.\033[0m")
-        sys.exit(1)
-        
-    if not check_auth():
-        print("\033[93m[ACTION REQUIRED] Please run 'gemini login' in your terminal and restart this setup.\033[0m")
-        # subprocess.run("gemini login", shell=True) # Usually opens browser, so we just wait
-        sys.exit(1)
-        
-    setup_environment()
-    scaffold_arc()
-    
-    # Create Dashboard Shortcut
-    print("\033[94m[*] Creating dashboard shortcut ('dash')...\033[0m")
-    venv_python = os.path.join("venv", "bin", "python") if os.name != "nt" else os.path.join("venv", "Scripts", "python.exe")
-    monitor_script = os.path.join(".agent", "dashboard", "monitor.py")
-    
+def create_dashboard_launcher(python: Path) -> None:
+    monitor = ROOT / ".agent/dashboard/monitor.py"
     if os.name == "nt":
-        with open("dash.bat", "w") as f:
-            f.write(f"@echo off\n\"{os.path.abspath(venv_python)}\" \"{os.path.abspath(monitor_script)}\" %*")
-        print("  \033[92m[+]\033[0m Created dash.bat (Windows)")
+        launcher = ROOT / "dash.bat"
+        launcher.write_text(f'@"{python}" "{monitor}" %*\n', encoding="utf-8")
     else:
-        with open("dash", "w") as f:
-            f.write("#!/bin/bash\n")
-            f.write("# Universal Dash Launcher\n")
-            f.write("SCRIPT_DIR=\"$( cd \"$( dirname \"${BASH_SOURCE[0]}\" )\" &> /dev/null && pwd )\"\n")
-            f.write("VENV_PYTHON=\"$SCRIPT_DIR/venv/bin/python\"\n")
-            f.write("MONITOR_SCRIPT=\"$SCRIPT_DIR/.agent/dashboard/monitor.py\"\n\n")
-            f.write("if [ ! -f \"$VENV_PYTHON\" ]; then\n")
-            f.write("    echo \"❌ Virtual Environment not found at $VENV_PYTHON\"\n")
-            f.write("    exit 1\n")
-            f.write("fi\n\n")
-            f.write("\"$VENV_PYTHON\" \"$MONITOR_SCRIPT\" \"$@\"\n")
-        os.chmod("dash", 0o700) # Security fix: Restrict to user only
-        print("  \033[92m[+]\033[0m Created dash (Unix/Mac Portable)")
+        launcher = ROOT / "dash"
+        launcher.write_text(
+            '#!/bin/sh\n'
+            'ROOT="$(CDPATH= cd -- "$(dirname -- "$0")" && pwd)"\n'
+            'PY="$ROOT/venv/bin/python"\n'
+            '[ -x "$PY" ] || { echo "ARC virtualenv not found; run setup_arc.py"; exit 1; }\n'
+            'exec "$PY" "$ROOT/.agent/dashboard/monitor.py" "$@"\n',
+            encoding="utf-8",
+        )
+        launcher.chmod(0o700)
 
-    print("\n\033[92m[SUCCESS] ARC Protocol v2.1 Ready.\033[0m")
-    print("\033[94m---------------------------------------------------\033[0m")
-    print("\033[1;97m🚀 NEXT STEPS:\033[0m")
-    print(f"1. \033[93mAutomate IDE Linking:\033[0m Run 'python3 .agent/tools/link_mcp.py'")
-    print(f"2. \033[93mManual IDE Linking:\033[0m Use absolute path below for MCP server:")
-    print(f"   \033[96m{os.path.abspath('.agent/mcp/arc_mcp_server.py')}\033[0m")
-    print(f"3. \033[93mStart Dashboard:\033[0m Run './dash' (or 'dash.bat')")
-    print("\033[94m---------------------------------------------------\033[0m")
+
+def main() -> int:
+    print_banner()
+    if sys.version_info < (3, 10):
+        print("ARC requires Python 3.10 or newer.", file=sys.stderr)
+        return 1
+
+    python = setup_environment()
+    scaffold_arc()
+    create_dashboard_launcher(python)
+
+    validator = ROOT / ".agent/tools/validate_skills.py"
+    if validator.is_file():
+        subprocess.run([str(python), str(validator)], cwd=ROOT, check=True)
+
+    print("\nARC Protocol 3.0 is ready.")
+    print("No model CLI, API key, or provider login is required.")
+    print("\nNext steps:")
+    print("1. Ensure your AI coding agent discovers Skills from .agents/skills/.")
+    print("2. Start an existing project with the arc-map Skill.")
+    print("3. Initialize a new project with the arc-new Skill.")
+    print("4. Optional dashboard: ./dash (Windows: dash.bat)")
+    print("5. Optional MCP tools: see docs/INTEGRATIONS.md")
+    return 0
+
 
 if __name__ == "__main__":
-    main()
+    raise SystemExit(main())

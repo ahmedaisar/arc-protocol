@@ -1,114 +1,105 @@
-# ARC Protocol v2.1 (Technical Preview)
+# ARC Protocol v3.0
 
-```text
-   █████╗ ██████╗  ██████╗ 
-  ██╔══██╗██╔══██╗██╔════╝ 
-  ███████║██████╔╝██║      
-  ██╔══██║██╔══██╗██║      
-  ██║  ██║██║  ██║╚██████╗ 
-  ╚═╝  ╚═╝╚═╝  ╚═╝ ╚═════╝ 
-   ANALYZE. RUN. CONFIRM.
-```
+**AI Skills-native. Model-agnostic. Verification-first.**
+
+ARC is a portable engineering workflow for AI-assisted software development. It keeps AI work grounded in persistent project context, explicit contracts, atomic plans, deterministic tools, and evidence-based verification—without requiring a particular model, provider, CLI, or background-agent runtime.
 
 ![ARC Dashboard](assets/Dashboard.png)
 
-## 🧩 What is ARC?
-ARC is a system that prevents AI-assisted coding from becoming sloppy. In simpler terms: it's a local development workflow that lets multiple AI agents work together to build a project without losing the "big picture."
+## What ARC provides
 
-Most AI tools just "wing it" by looking at one file at a time and hoping for the best. ARC is different. It’s a coordination layer that forces the AI to work like a pro. It breaks the job down: it **Analyzes** your whole codebase, **Runs** the task using specialized "expert" agents (like a Researcher, a Coder, and an Auditor), and **Confirms** that everything actually works before it calls it a day. 
+- **Agent Skills** — reusable workflow and role instructions under `.agents/skills/`.
+- **Persistent project context** — `.arc/PROJECT.md`, `CONTRACTS.md`, `ROADMAP.md`, `STATE.md`, and planning artifacts.
+- **Deterministic tools** — topology mapping, contract checks, structure validation, changelog generation, and metrics.
+- **Optional dashboard** — visibility into project progress.
+- **Optional MCP bridge** — deterministic local tools for hosts that prefer MCP. MCP is not an AI runtime.
 
-It’s not magic—it’s just a strict set of guardrails that keep your AI focused and your code clean.
+The host AI coding agent supplies reasoning and execution. When it supports native subagents, ARC Skills may delegate bounded tasks to them. Otherwise the same workflow runs sequentially.
 
----
+## Quick start
 
-
-> **Why I Built This:**
-> I'm a developer, not a "Prompt Engineer." I got tired of AI writing code that broke two days later because it forgot my file structure.
->
-> Other tools try to be "Magic Employees" that run your whole company. ARC is different. It's a **Managed Context Protocol**. It forces the AI to check `CONTRACTS.md` before it commits a single line of code. No magic. Just guardrails.
-
----
-
-## ⚡ Quick Start
-
-### 1. Installation
-You need **Python 3.10+** (for the Core Logic) and **Node.js 18+** (for the Gemini Auth Bridge). No API Key required (we use your Google account).
+Requirements: Python 3.10+. No Node.js, Gemini CLI, model API key, or provider login is required by ARC core.
 
 ```bash
-# 1. Initialize the environment
 python3 setup_arc.py
-
-# 2. Login to Gemini (One time only)
-npm install -g @google/generative-ai
-gemini login
-
-# 3. Connect your IDE
-# Copy the config from docs/INTEGRATIONS.md to your MCP settings.
 ```
-[👉 Comprehensive Integrations Guide](docs/INTEGRATIONS.md)
 
----
+Then configure your coding agent to discover Skills from `.agents/skills/` (or its documented client-specific Skills directory).
 
-> 💡 **A Quick Tip on Slash-Commands:**
-> Don't reach for your terminal when you see things like `/arc-new` or `/arc-plan`. These aren't shell scripts; they're **trigger phrases** for your AI.
->
-> Just type them into your chat sidebar (in Claude, Windsurf, or Antigravity) once you've connected ARC. Your AI sees the slash-command, grabs the right tool from the protocol, and starts the automation for you.
+For a new project, invoke the **arc-new** Skill. For an existing repository, start with **arc-map**. Then use:
 
----
+1. **arc-discuss** — capture decisions and constraints.
+2. **arc-plan** — create an atomic plan with verification criteria.
+3. Review and approve the plan.
+4. **arc-execute** — implement in dependency order, using native delegation when available.
+5. **arc-verify** — independently inspect changes and run checks.
+6. **arc-status** / **arc-resume** — track or resume work across sessions.
 
-## 🏎️ Tutorial: Build a To-Do App in 5 Minutes
+## Skills catalog
 
-See it in action. Open your AI editor (Claude/Windsurf/Antigravity) and type:
+Canonical portable Skills live in `.agents/skills/`.
 
-1.  **"Initialize a new project. Run `/arc-new`."**
-    *   *AI asks:* "What are we building?"
-    *   *You say:* "A simple Python CLI To-Do app."
-2.  **"Okay, let's build Phase 1. Run `/arc-plan`."**
-    *   *AI acts:* It reads `PROJECT.md`, checks for existing code (none), and drafts a plan: "Create file `todo.py`, Add `add_task` function..."
-3.  **"Looks good. Run `/arc-execute`."**
-    *   *AI acts:* It spawns background agents. You watch the dashboard.
-        *   `Research-Agent` checks `argparse` docs.
-        *   `Build-Agent` writes the `.py` file.
-        *   `Audit-Agent` checks for PEP8 violations.
-4.  **"Verify it works. Run `/arc-verify`."**
-    *   *AI acts:* It runs the script and confirms tasks can be added.
+| Category | Skills |
+|---|---|
+| Core | `arc` |
+| Workflows | `arc-new`, `arc-map`, `arc-discuss`, `arc-plan`, `arc-execute`, `arc-verify`, `arc-status`, `arc-resume`, `arc-quick` |
+| Roles | `arc-architect`, `arc-coder`, `arc-researcher`, `arc-auditor`, `arc-debugger` |
 
-**Result:** You end up with a working app driven entirely through the ARC workflow, with all changes written and verified on disk.
+Each Skill is a directory containing `SKILL.md` with YAML frontmatter. See [the catalog](.agents/skills/README.md).
 
----
+## Architecture
 
-## 📖 How to Use
+```text
+AI coding host (any compatible agent)
+       |
+       v
+.agents/skills/       Workflow + role Skills
+       |
+       +--------------> .arc/ project context and state
+       |
+       +--------------> .agent/tools/ deterministic utilities
+       |
+       +--------------> optional dashboard / optional MCP tools
+       |
+       v
+Host-native execution and delegation (or sequential fallback)
+       |
+       v
+Implementation + tests + recorded verification
+```
 
-### 🆕 Starting a New Project
-Don't write code yet. Let the ARC process structure it for you.
-1.  Initialize: **`/arc-new`**
-2.  Plan the work: **`/arc-plan`**
-3.  Build it: **`/arc-execute`**
+ARC describes engineering behavior and guardrails; the host determines which model and runtime execute them. ARC does not spawn provider-specific background processes.
 
-[👉 Read the full "New Project" Guide](HOW_IT_WORKS.md#-5-starting-a-new-project)
+## Optional dashboard and tools
 
-### 🏢 Working on an Existing Codebase
-Don't let the AI guess your architecture. Map it first.
-1.  Scan the files: **`/arc-map`**
-2.  This generates a `CODEBASE_MAP.md` that teaches the agents your style.
-3.  Then proceed with planning.
+```bash
+./dash
+```
 
-[👉 Read the full "Existing Project" Guide](HOW_IT_WORKS.md#-6-integrating-into-an-existing-project)
+Run individual tools with the Python environment created by setup, for example:
 
-### 🤖 The Workflow Commands
-We use specific trigger words to switch modes.
-*   **`/arc-discuss`**: Brainstorm before you build.
-*   **`/arc-quick`**: Fast, one-off tasks.
-*   **`/arc-verify`**: Make sure it actually works.
+```bash
+./venv/bin/python .agent/tools/map_topology.py
+./venv/bin/python .agent/tools/validate_structure.py
+./venv/bin/python .agent/tools/contract_check.py
+```
 
-[👉 See all Workflow Commands](HOW_IT_WORKS.md#%EF%B8%8F-2-workflow-commands)
+On Windows, use `venv\\Scripts\\python.exe` and `dash.bat`.
 
----
+## Migration from v2.x
 
-## 📂 Documentation
-*   **[How It Works (Deep Dive)](HOW_IT_WORKS.md)**: The internal mechanics of MCP and Gemini.
-*   **[Contracts & Rules](.arc/CONTRACTS.md)**: How we enforce code quality.
-*   **[The Toolbox](docs/TOOLS.md)**: The "Power Tools" behind the scenes (Enforcer, Cartographer, etc.).
+See [Migration Guide](docs/MIGRATION_V3.md). Existing `.arc/` project artifacts are preserved. Gemini authentication and model-specific worker execution are removed. The legacy workflow and role-prompt paths remain as migration pointers during v3.0.
 
----
-*Open Source. MIT License.*
+## Integrations
+
+See [Integrations Guide](docs/INTEGRATIONS.md) for Skills discovery and optional MCP configuration. Client discovery paths vary by product and version; ARC keeps one canonical Skills source and does not assume every client automatically discovers it.
+
+## Design principles
+
+1. **Context before code:** inspect project facts and contracts first.
+2. **Plans before substantial execution:** define atomic tasks and acceptance criteria.
+3. **Delegation is optional:** use host-native capabilities only when available and safe.
+4. **Verification is evidence:** report exact commands and results.
+5. **Provider independence:** no model or vendor is required by ARC core.
+
+Open source under the MIT License.

@@ -1,21 +1,5 @@
----
-description: Show current ARC status
----
+# Legacy workflow pointer
 
-Show me my current project status:
+This command's canonical ARC Protocol v3 implementation is the standard Agent Skill at `.agents/skills/arc-status/SKILL.md`.
 
-0. **Dashboard Info**:
-   - Run `./venv/bin/python3 .agent/dashboard/update.py main_status="STATUS" main_action="Checking Project Health" log="Generating status report..."`
-
-1. Read .arc/PROJECT.md
-2. Read .arc/ROADMAP.md  
-3. Read .arc/STATE.md
-
-Tell me:
-- Project name and goal
-- Phases completed ✅
-- Current phase (if any)
-- Next phase
-- Any blockers or decisions needed
-
-Format it clearly so I can see progress at a glance.
+Invoke the `arc-status` Skill through your host agent's Skills interface. The legacy workflow directory is retained temporarily for migration compatibility. See [Migration Guide](../../docs/MIGRATION_V3.md).
